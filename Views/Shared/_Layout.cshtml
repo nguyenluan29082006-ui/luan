@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MêTruyệnPlus (ASP.NET Core 8 - C#)</title>
+    <title>@ViewData["Title"] - MêTruyệnPlus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -44,16 +44,10 @@
                     {
                         <a href="/Admin" class="nav-item" style="color: #38bdf8;">🛡️ Quản trị (Admin)</a>
                     }
-
-                    <a href="/swagger" target="_blank" class="nav-item" style="color: #34d399;" title="Xem Swagger API Docs">⚡ Swagger API</a>
                 </nav>
 
                 <!-- Auth / User Area -->
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <!-- Demo role quick switch button -->
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('demoModal').classList.add('show')" style="border: 1px dashed var(--primary); font-size: 0.8rem;">
-                        ✨ Đổi vai trò Demo
-                    </button>
 
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
@@ -107,11 +101,9 @@
                 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
                     <div style="display: flex; align-items: center; gap: 0.6rem;">
                         <span style="font-size: 1.2rem; font-weight: 800; color: #fff;">MêTruyện<span style="color: #ec4899;">Plus</span></span>
-                        <span class="badge badge-primary">C# ASP.NET Core 8</span>
-                        <span class="badge badge-purple">EF Core SQLite</span>
                     </div>
                     <div style="font-size: 0.85rem; color: var(--text-muted);">
-                        Đồ án môn Công nghệ phần mềm nâng cao (CNPMNC) - 100% C# .NET 8
+                        Cộng đồng đọc và sáng tác truyện trực tuyến
                     </div>
                 </div>
                 <div style="text-align: center; font-size: 0.8rem; color: var(--text-dim);">
@@ -121,61 +113,5 @@
         </footer>
     </div>
 
-    <!-- Quick Demo Modal Switcher -->
-    <div id="demoModal" class="modal-backdrop" onclick="this.classList.remove('show')">
-        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 440px; padding: 1.75rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">✨ Đăng nhập nhanh vai trò Demo</h3>
-                <button onclick="document.getElementById('demoModal').classList.remove('show')" style="color: var(--text-muted); font-size: 1.2rem;">✕</button>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); marginBottom: 1.25rem;">
-                Chọn 1 trong 3 tài khoản để trải nghiệm toàn bộ các chức năng của hệ thống:
-            </p>
-
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <!-- Admin -->
-                <form action="/Account/QuickLogin" method="post">
-                    <input type="hidden" name="email" value="admin@doctruyen.vn" />
-                    <button type="submit" style="width: 100%; text-align: left; padding: 0.85rem; border-radius: var(--radius-md); background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); cursor: pointer;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <strong style="color: #f87171;">1. Quản Trị Viên (Admin)</strong>
-                            <span class="badge badge-danger">ADMIN</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-                            admin@doctruyen.vn - Duyệt truyện, xử lý báo cáo vi phạm, quản lý user.
-                        </div>
-                    </button>
-                </form>
-
-                <!-- Author -->
-                <form action="/Account/QuickLogin" method="post">
-                    <input type="hidden" name="email" value="tacgia@doctruyen.vn" />
-                    <button type="submit" style="width: 100%; text-align: left; padding: 0.85rem; border-radius: var(--radius-md); background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.25); cursor: pointer;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <strong style="color: #a78bfa;">2. Tác Giả (Author)</strong>
-                            <span class="badge badge-purple">AUTHOR</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-                            tacgia@doctruyen.vn - Đăng truyện mới chờ duyệt, viết chương mới.
-                        </div>
-                    </button>
-                </form>
-
-                <!-- Reader -->
-                <form action="/Account/QuickLogin" method="post">
-                    <input type="hidden" name="email" value="docgia@doctruyen.vn" />
-                    <button type="submit" style="width: 100%; text-align: left; padding: 0.85rem; border-radius: var(--radius-md); background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); cursor: pointer;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <strong style="color: #818cf8;">3. Độc Giả (Reader)</strong>
-                            <span class="badge badge-primary">READER</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-                            docgia@doctruyen.vn - Đọc truyện, lưu tủ truyện, bình luận, báo cáo.
-                        </div>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

@@ -15,7 +15,7 @@
                 Đăng Nhập Tài Khoản
             </h1>
             <p style="font-size: 0.875rem; color: var(--text-muted);" id="formSubtitle">
-                Nền tảng đọc truyện trực tuyến MêTruyệnPlus (C# .NET 8)
+                Nền tảng đọc truyện trực tuyến MêTruyệnPlus
             </p>
         </div>
 
@@ -127,35 +127,6 @@
             </button>
         </form>
 
-        <!-- 1-Click Demo Quick Logins -->
-        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.75rem;">
-                ✨ ĐĂNG NHẬP NHANH TÀI KHOẢN MẪU (1-CLICK)
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <form action="/Account/QuickLogin" method="post">
-                    <input type="hidden" name="email" value="admin@doctruyen.vn" />
-                    <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start; color: #f87171;">
-                        🛡️ <span>Admin: <strong>admin@doctruyen.vn</strong></span>
-                    </button>
-                </form>
-
-                <form action="/Account/QuickLogin" method="post">
-                    <input type="hidden" name="email" value="tacgia@doctruyen.vn" />
-                    <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start; color: #a78bfa;">
-                        ✍️ <span>Tác giả: <strong>tacgia@doctruyen.vn</strong></span>
-                    </button>
-                </form>
-
-                <form action="/Account/QuickLogin" method="post">
-                    <input type="hidden" name="email" value="docgia@doctruyen.vn" />
-                    <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start; color: #818cf8;">
-                        👤 <span>Độc giả: <strong>docgia@doctruyen.vn</strong></span>
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -218,7 +189,7 @@
             btnTabLogin.className = 'btn btn-sm btn-primary';
             btnTabRegister.className = 'btn btn-sm btn-secondary';
             formTitle.innerText = 'Đăng Nhập Tài Khoản';
-            formSubtitle.innerText = 'Nền tảng đọc truyện trực tuyến MêTruyệnPlus (C# .NET 8)';
+            formSubtitle.innerText = 'Nền tảng đọc truyện trực tuyến MêTruyệnPlus';
         } else if (mode === 'register') {
             loginForm.style.display = 'none';
             registerForm.style.display = 'block';
