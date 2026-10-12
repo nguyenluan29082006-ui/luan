@@ -1,0 +1,24 @@
+## .gitignore for .NET C# Web Application
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# SQLite temporary and lock files
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,324 @@
+@HostAddress = http://localhost:5000
+
+### ===================================================
+### 1. XÁC THỰC & TÀI KHOẢN (AUTH & ACCOUNT)
+### ===================================================
+
+### 1.1 Đăng nhập vai trò Quản trị viên (Admin)
+# @name loginAdmin
+POST {{HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@doctruyen.vn",
+  "password": "admin123"
+}
+
+### Lưu token Admin
+@adminToken = {{loginAdmin.response.body.token}}
+
+### 1.2 Đăng nhập vai trò Tác giả (Author)
+# @name loginAuthor
+POST {{HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "tacgia@doctruyen.vn",
+  "password": "author123"
+}
+
+### Lưu token Author
+@authorToken = {{loginAuthor.response.body.token}}
+
+### 1.3 Đăng nhập vai trò Độc giả (Reader)
+# @name loginReader
+POST {{HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "docgia@doctruyen.vn",
+  "password": "reader123"
+}
+
+### Lưu token Reader
+@readerToken = {{loginReader.response.body.token}}
+
+### 1.4 Lấy thông tin tài khoản hiện tại (Me)
+GET {{HostAddress}}/api/auth/me
+Authorization: Bearer {{readerToken}}
+
+### 1.5 Đăng ký tài khoản Độc giả mới
+POST {{HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Độc Giả Mới 2026",
+  "email": "docgiamoi2026@gmail.com",
+  "password": "password123",
+  "role": "reader"
+}
+
+### 1.6 Nâng cấp tài khoản thành Tác giả (Become Author)
+POST {{HostAddress}}/api/auth/become-author
+Authorization: Bearer {{readerToken}}
+
+### ===================================================
+### 2. QUẢN LÝ TRUYỆN (STORIES)
+### ===================================================
+
+### 2.1 Lấy danh sách truyện (Tất cả, phân trang, lọc)
+GET {{HostAddress}}/api/stories?page=1&limit=10&sort=views
+
+### 2.2 Lọc truyện theo thể loại & từ khóa tìm kiếm
+GET {{HostAddress}}/api/stories?genre=tien-hiep&search=Đấu Phá
+
+### 2.3 Xem chi tiết truyện theo Slug (kèm danh sách chương)
+GET {{HostAddress}}/api/stories/dau-pha-thuong-khung
+
+### 2.4 Xem chi tiết truyện theo ID
+GET {{HostAddress}}/api/stories/1
+
+### 2.5 Tác giả tạo truyện mới
+POST {{HostAddress}}/api/stories
+Authorization: Bearer {{authorToken}}
+Content-Type: application/json
+
+{
+  "title": "Vũ Động Càn Khôn Mới Nhất",
+  "description": "Câu chuyện về thiếu niên Lâm Động tìm thấy thạch phù thần bí và bước lên con đường tu luyện đỉnh cao.",
+  "coverUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80",
+  "type": "novel",
+  "genreIds": [1, 2]
+}
+
+### 2.6 Tác giả cập nhật thông tin truyện
+PUT {{HostAddress}}/api/stories/1
+Authorization: Bearer {{authorToken}}
+Content-Type: application/json
+
+{
+  "title": "Đấu Phá Thương Khung (Bản Cập Nhật)",
+  "status": "ongoing",
+  "description": "Bản mô tả cập nhật mới cho tuyệt tác tu chân tiên hiệp."
+}
+
+### ===================================================
+### 3. QUẢN LÝ CHƯƠNG & ĐỌC TRUYỆN (CHAPTERS)
+### ===================================================
+
+### 3.1 Đọc nội dung chương (Tự động tăng lượt xem)
+GET {{HostAddress}}/api/chapters/1
+
+### 3.2 Tác giả thêm chương mới vào truyện
+POST {{HostAddress}}/api/stories/1/chapters
+Authorization: Bearer {{authorToken}}
+Content-Type: application/json
+
+{
+  "chapterNumber": 3,
+  "title": "Chương 3: Khách Quý Đến Thăm Gia Tộc",
+  "content": "Sáng sớm hôm sau, toàn bộ Tiêu Gia xôn xao náo nhiệt. Tộc trưởng Tiêu Chiến đích thân ra cửa nghênh đón đoàn người đến từ Vân Lam Tông..."
+}
+
+### ===================================================
+### 4. THỂ LOẠI (GENRES)
+### ===================================================
+
+### 4.1 Lấy danh sách thể loại truyện kèm số lượng truyện
+GET {{HostAddress}}/api/genres
+
+### 4.2 Lấy chi tiết thể loại và các truyện thuộc thể loại đó
+GET {{HostAddress}}/api/genres/1
+
+### 4.3 Admin thêm thể loại mới
+POST {{HostAddress}}/api/genres
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Khoa Huyễn Kỳ Ảo",
+  "slug": "khoa-huyen-ky-ao",
+  "description": "Các truyện về công nghệ tương lai, du hành vũ trụ và cơ giáp.",
+  "icon": "🚀"
+}
+
+### ===================================================
+### 5. TƯƠNG TÁC: TỦ SÁCH & LỊCH SỬ ĐỌC (INTERACTIONS)
+### ===================================================
+
+### 5.1 Thêm / Bỏ yêu thích truyện (Toggle Bookmark)
+POST {{HostAddress}}/api/favorites/toggle/1
+Authorization: Bearer {{readerToken}}
+
+### 5.2 Lấy danh sách truyện trong Tủ truyện yêu thích
+GET {{HostAddress}}/api/favorites
+Authorization: Bearer {{readerToken}}
+
+### 5.3 Lưu tiến trình đọc truyện (History)
+POST {{HostAddress}}/api/history
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "storyId": 1,
+  "chapterId": 1
+}
+
+### 5.4 Lấy lịch sử đọc truyện của người dùng
+GET {{HostAddress}}/api/history
+Authorization: Bearer {{readerToken}}
+
+### ===================================================
+### 6. CỘNG ĐỒNG: BÌNH LUẬN & BÁO CÁO (COMMUNITY)
+### ===================================================
+
+### 6.1 Lấy danh sách bình luận của truyện
+GET {{HostAddress}}/api/comments?storyId=1
+
+### 6.2 Gửi bình luận mới
+POST {{HostAddress}}/api/comments
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "storyId": 1,
+  "chapterId": 1,
+  "content": "Truyện đọc rất cuốn, văn phong dịch mượt mà!"
+}
+
+### 6.3 Gửi báo cáo vi phạm
+POST {{HostAddress}}/api/reports
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "targetType": "comment",
+  "targetId": 1,
+  "reason": "Ngôn từ thô tục, xúc phạm người khác",
+  "details": "Đề nghị BQT xử lý bình luận vi phạm này."
+}
+
+### ===================================================
+### 7. THÔNG BÁO HỆ THỐNG (NOTIFICATIONS)
+### ===================================================
+
+### 7.1 Lấy danh sách thông báo của tôi
+GET {{HostAddress}}/api/notifications
+Authorization: Bearer {{readerToken}}
+
+### 7.2 Lấy số lượng thông báo chưa đọc
+GET {{HostAddress}}/api/notifications/unread-count
+Authorization: Bearer {{readerToken}}
+
+### 7.3 Đánh dấu đã đọc 1 thông báo
+PUT {{HostAddress}}/api/notifications/1/read
+Authorization: Bearer {{readerToken}}
+
+### 7.4 Đánh dấu tất cả thông báo là đã đọc
+PUT {{HostAddress}}/api/notifications/read-all
+Authorization: Bearer {{readerToken}}
+
+### 7.5 Admin gửi thông báo mới cho người dùng
+POST {{HostAddress}}/api/notifications
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": 4,
+  "title": "🎉 Chào mừng sự kiện Đọc Truyện Nhận Thưởng",
+  "message": "Bạn vừa nhận được vé bình chọn truyện xuất sắc tháng này!",
+  "type": "system",
+  "actionUrl": "/rewards"
+}
+
+### ===================================================
+### 8. HỒ SƠ NGƯỜI DÙNG (USERS & PROFILE)
+### ===================================================
+
+### 8.1 Xem hồ sơ cá nhân và số liệu hoạt động
+GET {{HostAddress}}/api/users/profile
+Authorization: Bearer {{readerToken}}
+
+### 8.2 Cập nhật hồ sơ cá nhân
+PUT {{HostAddress}}/api/users/profile
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "name": "Nguyễn Văn Đọc (VIP)",
+  "bio": "Mọt sách chân chính, đam mê tiên hiệp huyền ảo."
+}
+
+### 8.3 Đổi mật khẩu
+PUT {{HostAddress}}/api/users/change-password
+Authorization: Bearer {{readerToken}}
+Content-Type: application/json
+
+{
+  "oldPassword": "reader123",
+  "newPassword": "newReaderPassword123"
+}
+
+### 8.4 Xem hồ sơ công khai của một tác giả / độc giả
+GET {{HostAddress}}/api/users/2
+
+### ===================================================
+### 9. THỐNG KÊ & BẢNG XẾP HẠNG (STATS & LEADERBOARD)
+### ===================================================
+
+### 9.1 Thống kê tổng quan hệ thống (Dashboard Metrics)
+GET {{HostAddress}}/api/stats/dashboard
+
+### 9.2 Bảng xếp hạng truyện theo Lượt Xem (Top Views)
+GET {{HostAddress}}/api/stats/top-views?limit=5
+
+### 9.3 Bảng xếp hạng truyện theo Lượt Yêu Thích (Top Favorites)
+GET {{HostAddress}}/api/stats/top-favorites?limit=5
+
+### 9.4 Bảng xếp hạng tác giả tiêu biểu (Top Authors)
+GET {{HostAddress}}/api/stats/top-authors?limit=5
+
+### ===================================================
+### 10. QUẢN TRỊ VIÊN HỆ THỐNG (ADMIN)
+### ===================================================
+
+### 10.1 Thống kê quản trị Admin
+GET {{HostAddress}}/api/admin/stats
+Authorization: Bearer {{adminToken}}
+
+### 10.2 Lấy danh sách truyện đang chờ duyệt
+GET {{HostAddress}}/api/admin/stories/pending
+Authorization: Bearer {{adminToken}}
+
+### 10.3 Duyệt hoặc từ chối truyện
+PUT {{HostAddress}}/api/admin/stories/1/review
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "action": "approved",
+  "rejectionReason": ""
+}
+
+### 10.4 Lấy danh sách báo cáo vi phạm
+GET {{HostAddress}}/api/admin/reports
+Authorization: Bearer {{adminToken}}
+
+### 10.5 Xử lý báo cáo vi phạm
+PUT {{HostAddress}}/api/admin/reports/1/handle
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "resolved",
+  "action": "none",
+  "resolutionNotes": "Đã nhắc nhở người dùng tuân thủ quy tắc."
+}
+
+### 10.6 Lấy danh sách toàn bộ người dùng hệ thống
+GET {{HostAddress}}/api/admin/users
+Authorization: Bearer {{adminToken}}
+
+### 10.7 Khóa hoặc mở khóa tài khoản người dùng
+PUT {{HostAddress}}/api/admin/users/4/toggle-ban
+Authorization: Bearer {{adminToken}}

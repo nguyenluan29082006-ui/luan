@@ -1,0 +1,154 @@
+@{
+    ViewData["Title"] = "Trang Chủ - Nền Tảng Đọc Truyện Đỉnh Cao";
+    var heroStory = ViewBag.HeroStory as Story;
+    var topViews = ViewBag.TopViews as List<Story> ?? new List<Story>();
+    var latest = ViewBag.Latest as List<Story> ?? new List<Story>();
+    var genres = ViewBag.Genres as IEnumerable<dynamic>;
+}
+
+@if (heroStory != null)
+{
+    <!-- Hero Banner Section -->
+    <section style="position: relative; padding: 2.5rem 0 3.5rem 0; background: linear-gradient(180deg, rgba(99, 102, 241, 0.12) 0%, transparent 100%); border-bottom: 1px solid var(--border-color); margin-bottom: 2.5rem;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; align-items: center;">
+                <div>
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <span class="badge badge-primary">🔥 Truyện Nổi Bật Nhất Tuần</span>
+                        <span class="badge badge-purple">@(heroStory.Type == "comic" ? "Truyện Tranh" : "Truyện Chữ")</span>
+                    </div>
+
+                    <h1 style="font-size: clamp(1.75rem, 3.5vw, 2.75rem); font-weight: 800; line-height: 1.2; color: #fff; margin-bottom: 1rem;">
+                        @heroStory.Title
+                    </h1>
+
+                    <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.65; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                        @heroStory.Description
+                    </p>
+
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <a href="/Story/Detail/@heroStory.Id" class="btn btn-primary btn-lg">
+                            📖 Khám phá & Đọc ngay
+                        </a>
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">
+                            Tác giả: <strong style="color: #fff;">@heroStory.AuthorName</strong>
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: center;">
+                    <a href="/Story/Detail/@heroStory.Id" style="display: block; width: 260px; aspect-ratio: 2 / 3; border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.7), 0 0 30px rgba(99, 102, 241, 0.3);">
+                        <img src="@heroStory.CoverUrl" alt="@heroStory.Title" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<div class="container">
+    <!-- Quick Genres Carousel -->
+    @if (genres != null)
+    {
+        <section style="margin-bottom: 3rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff;">🧭 Khám Phá Thể Loại</h2>
+            </div>
+            <div style="display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.75rem;">
+                @foreach (var item in genres)
+                {
+                    <a href="/Home/Genres?genre=@item.Genre.Slug" class="glass-card" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1.15rem; border-radius: var(--radius-full); white-space: nowrap; font-size: 0.9rem; font-weight: 600; color: #e2e8f0; flex-shrink: 0; text-decoration: none;">
+                        <span>@(item.Genre.Icon ?? "📖")</span>
+                        <span>@item.Genre.Name</span>
+                        <span style="font-size: 0.75rem; color: var(--text-dim); background: rgba(255,255,255,0.06); padding: 0.1rem 0.4rem; border-radius: 10px;">
+                            @item.Count
+                        </span>
+                    </a>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- Top Xem Nhiều Nhất -->
+    <section style="margin-bottom: 3.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
+            <h2 style="font-size: 1.35rem; font-weight: 700; color: #fff;">📈 Bảng Xếp Hạng Xem Nhiều Nhất</h2>
+        </div>
+
+        <div class="story-grid">
+            @for (int i = 0; i < topViews.Count; i++)
+            {
+                var s = topViews[i];
+                <div style="position: relative;">
+                    <div style="position: absolute; top: -8px; left: -8px; z-index: 5; width: 28px; height: 28px; border-radius: 50%; background: @(i == 0 ? "linear-gradient(135deg, #f59e0b, #ef4444)" : i == 1 ? "linear-gradient(135deg, #94a3b8, #64748b)" : "linear-gradient(135deg, #6366f1, #8b5cf6)"); color: #fff; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                        @(i + 1)
+                    </div>
+                    <a href="/Story/Detail/@s.Id" class="story-card">
+                        <div class="story-cover-wrap">
+                            <img src="@s.CoverUrl" alt="@s.Title" class="story-cover" loading="lazy" />
+                            <div class="story-overlay-tag">
+                                <span class="badge @(s.Type == "comic" ? "badge-purple" : "badge-primary")">
+                                    @(s.Type == "comic" ? "Truyện Tranh" : "Truyện Chữ")
+                                </span>
+                            </div>
+                            <div class="story-overlay-views">
+                                👁️ @s.Views.ToString("N0")
+                            </div>
+                        </div>
+                        <div class="story-info">
+                            <h3 class="story-title">@s.Title</h3>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                                ✍️ @s.AuthorName
+                            </div>
+                            <div class="story-meta">
+                                <span style="color: @(s.Status == "completed" ? "#34d399" : "#818cf8"); font-weight: 600;">
+                                    @(s.Status == "completed" ? "Hoàn thành" : "Đang ra")
+                                </span>
+                                <span>@(s.Chapters?.Count ?? 0) chương</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Mới Cập Nhật -->
+    <section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.35rem; font-weight: 700; color: #fff;">⏰ Truyện Mới Cập Nhật</h2>
+            <a href="/Home/Genres" class="btn btn-secondary btn-sm">Xem tất cả ➔</a>
+        </div>
+
+        <div class="story-grid">
+            @foreach (var s in latest)
+            {
+                <a href="/Story/Detail/@s.Id" class="story-card">
+                    <div class="story-cover-wrap">
+                        <img src="@s.CoverUrl" alt="@s.Title" class="story-cover" loading="lazy" />
+                        <div class="story-overlay-tag">
+                            <span class="badge @(s.Type == "comic" ? "badge-purple" : "badge-primary")">
+                                @(s.Type == "comic" ? "Truyện Tranh" : "Truyện Chữ")
+                            </span>
+                        </div>
+                        <div class="story-overlay-views">
+                            👁️ @s.Views.ToString("N0")
+                        </div>
+                    </div>
+                    <div class="story-info">
+                        <h3 class="story-title">@s.Title</h3>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                            ✍️ @s.AuthorName
+                        </div>
+                        <div class="story-meta">
+                            <span style="color: @(s.Status == "completed" ? "#34d399" : "#818cf8"); font-weight: 600;">
+                                @(s.Status == "completed" ? "Hoàn thành" : "Đang ra")
+                            </span>
+                            <span>@(s.Chapters?.Count ?? 0) chương</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    </section>
+</div>

@@ -1,0 +1,230 @@
+@model Story
+@{
+    ViewData["Title"] = Model.Title;
+    bool isFavorited = ViewBag.IsFavorited ?? false;
+    Chapter? resumeChapter = ViewBag.ResumeChapter as Chapter;
+    Chapter? firstChapter = ViewBag.FirstChapter as Chapter;
+}
+
+<div class="container" style="padding: 2rem 1.25rem;">
+    <!-- Story Info Header Card -->
+    <div class="glass-card" style="padding: 2rem; margin-bottom: 2.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2.5rem; align-items: flex-start;">
+            <!-- Cover & Actions -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="width: 230px; aspect-ratio: 2 / 3; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+                    <img src="@Model.CoverUrl" alt="@Model.Title" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+
+                <div style="display: flex; gap: 0.6rem; width: 230px;">
+                    <!-- Bookmark Favorite Form -->
+                    <form action="/Story/ToggleFavorite/@Model.Id" method="post" style="flex: 1;">
+                        <button type="submit" class="btn @(isFavorited ? "btn-danger" : "btn-secondary")" style="width: 100%; padding: 0.55rem 0.5rem;">
+                            🔖 @(isFavorited ? "Đã Lưu" : "Lưu Truyện")
+                        </button>
+                    </form>
+
+                    <!-- Report Button -->
+                    <button type="button" class="btn btn-outline" style="padding: 0.55rem 0.75rem; color: #f87171;" onclick="document.getElementById('reportStoryModal').classList.add('show')" title="Báo cáo vi phạm">
+                        ⚠️
+                    </button>
+                </div>
+            </div>
+
+            <!-- Story Description & Details -->
+            <div style="flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <span class="badge @(Model.Type == "comic" ? "badge-purple" : "badge-primary")">
+                        @(Model.Type == "comic" ? "Truyện Tranh" : "Truyện Chữ")
+                    </span>
+                    <span class="badge @(Model.Status == "completed" ? "badge-success" : "badge-warning")">
+                        @(Model.Status == "completed" ? "Đã Hoàn Thành" : "Đang Cập Nhật")
+                    </span>
+                    <span class="badge badge-primary">
+                        👁️ @Model.Views.ToString("N0") Lượt đọc
+                    </span>
+                </div>
+
+                <h1 style="font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.25; margin-bottom: 0.75rem;">
+                    @Model.Title
+                </h1>
+
+                <div style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                    ✍️ Tác giả: <strong style="color: #e2e8f0;">@Model.AuthorName</strong>
+                </div>
+
+                <!-- Genres tags -->
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
+                    @foreach (var sg in Model.StoryGenres)
+                    {
+                        if (sg.Genre != null)
+                        {
+                            <a href="/Home/Genres?genre=@sg.Genre.Slug" class="badge badge-primary" style="text-decoration: none; padding: 0.35rem 0.75rem;">
+                                @sg.Genre.Name
+                            </a>
+                        }
+                    }
+                </div>
+
+                <!-- Synopsis -->
+                <div style="background: rgba(0, 0, 0, 0.25); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.75rem; font-size: 0.925rem; color: #cbd5e1; line-height: 1.7;">
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Giới thiệu tóm tắt:</h3>
+                    <p style="white-space: pre-line;">@Model.Description</p>
+                </div>
+
+                <!-- Read Buttons -->
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                    @if (resumeChapter != null)
+                    {
+                        <a href="/Reader/Read/@resumeChapter.Id" class="btn btn-primary btn-lg">
+                            📖 Đọc tiếp Chương @resumeChapter.ChapterNumber
+                        </a>
+                    }
+                    @if (firstChapter != null)
+                    {
+                        <a href="/Reader/Read/@firstChapter.Id" class="btn @(resumeChapter != null ? "btn-secondary" : "btn-primary") btn-lg">
+                            📖 Đọc từ đầu (Chương 1)
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chapters and Comments Section -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem;">
+        <!-- Chapters List -->
+        <div>
+            <div class="glass-card" style="padding: 1.5rem;">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">
+                    Danh sách chương (@Model.Chapters.Count)
+                </h2>
+
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 480px; overflow-y: auto;">
+                    @foreach (var ch in Model.Chapters.OrderBy(c => c.ChapterNumber))
+                    {
+                        <a href="/Reader/Read/@ch.Id" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: #f1f5f9; text-decoration: none;">
+                            <span style="font-size: 0.925rem; font-weight: 500;">@ch.Title</span>
+                            <span style="font-size: 0.75rem; color: var(--text-dim);">@ch.CreatedAt.ToString("dd/MM/yyyy")</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div>
+            <div class="glass-card" style="padding: 1.5rem;">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">
+                    💬 Bình luận & Thảo luận (@Model.Comments.Count)
+                </h2>
+
+                <!-- Comment Form -->
+                <form action="/Story/AddComment" method="post" style="margin-bottom: 1.75rem;">
+                    <input type="hidden" name="storyId" value="@Model.Id" />
+                    <textarea name="content" class="form-control" rows="3" placeholder="Chia sẻ cảm nghĩ của bạn về bộ truyện này..." required></textarea>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.6rem;">
+                        <button type="submit" class="btn btn-primary btn-sm">Gửi bình luận</button>
+                    </div>
+                </form>
+
+                <!-- Comments List -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 420px; overflow-y: auto;">
+                    @foreach (var c in Model.Comments.OrderByDescending(cm => cm.CreatedAt))
+                    {
+                        <div style="padding: 0.85rem; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <strong style="font-size: 0.875rem; color: #e2e8f0;">@(c.User?.Name ?? "Ẩn danh")</strong>
+                                    @if (c.User?.Role == "author")
+                                    {
+                                        <span class="badge badge-purple" style="font-size: 0.65rem;">Tác giả</span>
+                                    }
+                                    @if (c.User?.Role == "admin")
+                                    {
+                                        <span class="badge badge-danger" style="font-size: 0.65rem;">Admin</span>
+                                    }
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 0.75rem; color: var(--text-dim);">@c.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                    <button type="button" onclick="openCommentReport(@c.Id, '@(c.User?.Name)')" style="color: var(--text-dim); font-size: 0.8rem;" title="Báo cáo bình luận">⚠️</button>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.875rem; color: #cbd5e1; line-height: 1.5;">@c.Content</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Story Modal -->
+<div id="reportStoryModal" class="modal-backdrop" onclick="this.classList.remove('show')">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 480px; padding: 1.75rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #f87171; margin-bottom: 1rem;">⚠️ Báo cáo truyện vi phạm</h3>
+        <form action="/Story/Report" method="post">
+            <input type="hidden" name="storyId" value="@Model.Id" />
+            <input type="hidden" name="targetId" value="@Model.Id" />
+            <input type="hidden" name="targetType" value="story" />
+
+            <div class="form-group">
+                <label class="form-label">Lý do báo cáo:</label>
+                <select name="reason" class="form-control" required>
+                    <option value="Nội dung phản cảm, không lành mạnh">Nội dung phản cảm, không lành mạnh</option>
+                    <option value="Bạo lực hoặc kích động thù hận">Bạo lực hoặc kích động thù hận</option>
+                    <option value="Vi phạm bản quyền tác giả">Vi phạm bản quyền tác giả</option>
+                    <option value="Lỗi kỹ thuật hoặc spam">Lỗi kỹ thuật hoặc spam</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Chi tiết bổ sung:</label>
+                <textarea name="details" class="form-control" rows="3" placeholder="Mô tả cụ thể vị trí vi phạm..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('reportStoryModal').classList.remove('show')">Hủy</button>
+                <button type="submit" class="btn btn-danger">Gửi báo cáo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Comment Modal -->
+<div id="reportCommentModal" class="modal-backdrop" onclick="this.classList.remove('show')">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 480px; padding: 1.75rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #f87171; margin-bottom: 1rem;">⚠️ Báo cáo bình luận vi phạm</h3>
+        <form action="/Story/Report" method="post">
+            <input type="hidden" name="storyId" value="@Model.Id" />
+            <input type="hidden" id="reportCommentId" name="targetId" value="0" />
+            <input type="hidden" name="targetType" value="comment" />
+
+            <div class="form-group">
+                <label class="form-label">Lý do báo cáo:</label>
+                <select name="reason" class="form-control" required>
+                    <option value="Xúc phạm, lăng mạ người khác">Xúc phạm, lăng mạ người khác</option>
+                    <option value="Ngôn từ thô tục, công kích cá nhân">Ngôn từ thô tục, công kích cá nhân</option>
+                    <option value="Spam hoặc quảng cáo độc hại">Spam hoặc quảng cáo độc hại</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Chi tiết bổ sung:</label>
+                <textarea name="details" class="form-control" rows="3" placeholder="Chi tiết..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('reportCommentModal').classList.remove('show')">Hủy</button>
+                <button type="submit" class="btn btn-danger">Gửi báo cáo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCommentReport(commentId, authorName) {
+        document.getElementById('reportCommentId').value = commentId;
+        document.getElementById('reportCommentModal').classList.add('show');
+    }
+</script>

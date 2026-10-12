@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Backend/WebDocTruyen.Backend.csproj" />
+  <Project Path="Frontend/WebDocTruyen.Frontend.csproj" />
+</Solution>
