@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["Backend/WebDocTruyen.Backend.csproj", "Backend/"]
+COPY ["Frontend/WebDocTruyen.Frontend.csproj", "Frontend/"]
+RUN dotnet restore "Frontend/WebDocTruyen.Frontend.csproj"
+COPY . .
+WORKDIR "/src/Frontend"
+RUN dotnet publish "WebDocTruyen.Frontend.csproj" -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 5001
+ENV ASPNETCORE_URLS=http://+:5001
+ENTRYPOINT ["dotnet", "WebDocTruyen.Frontend.dll"]
