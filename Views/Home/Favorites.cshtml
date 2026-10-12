@@ -1,0 +1,116 @@
+@{
+    ViewData["Title"] = "Tủ Truyện Của Bạn";
+    var favorites = ViewBag.Favorites as List<Story> ?? new List<Story>();
+    var histories = ViewBag.Histories as List<ReadingHistory> ?? new List<ReadingHistory>();
+}
+
+<div class="container" style="padding: 2rem 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;">Tủ Truyện Của Bạn</h1>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Quản lý truyện yêu thích và tiếp tục theo dõi tiến độ đọc.</p>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; background: rgba(255, 255, 255, 0.05); padding: 0.3rem; border-radius: var(--radius-md);">
+            <button type="button" class="btn btn-sm btn-primary" onclick="showTab('favTab', this)">
+                🔖 Truyện Yêu Thích (@favorites.Count)
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="showTab('histTab', this)">
+                ⏰ Lịch Sử Đọc (@histories.Count)
+            </button>
+        </div>
+    </div>
+
+    <!-- Favorites Tab Content -->
+    <div id="favTab">
+        @if (favorites.Count == 0)
+        {
+            <div style="text-align: center; padding: 4rem 1rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+                <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Tủ truyện của bạn hiện đang trống. Hãy khám phá và nhấn "Lưu Truyện" để theo dõi!
+                </p>
+                <a href="/" class="btn btn-primary">Khám phá truyện ngay</a>
+            </div>
+        }
+        else
+        {
+            <div class="story-grid">
+                @foreach (var s in favorites)
+                {
+                    <a href="/Story/Detail/@s.Id" class="story-card">
+                        <div class="story-cover-wrap">
+                            <img src="@s.CoverUrl" alt="@s.Title" class="story-cover" loading="lazy" />
+                            <div class="story-overlay-tag">
+                                <span class="badge @(s.Type == "comic" ? "badge-purple" : "badge-primary")">
+                                    @(s.Type == "comic" ? "Truyện Tranh" : "Truyện Chữ")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="story-info">
+                            <h3 class="story-title">@s.Title</h3>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                                ✍️ @s.AuthorName
+                            </div>
+                            <div class="story-meta">
+                                <span>@(s.Chapters?.Count ?? 0) chương</span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Reading History Tab Content -->
+    <div id="histTab" style="display: none;">
+        @if (histories.Count == 0)
+        {
+            <div style="text-align: center; padding: 4rem 1rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+                <p style="font-size: 1.1rem; color: var(--text-muted);">Bạn chưa đọc bộ truyện nào gần đây.</p>
+            </div>
+        }
+        else
+        {
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                @foreach (var item in histories)
+                {
+                    <div class="glass-card" style="padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap;">
+                        <a href="/Story/Detail/@item.StoryId" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit;">
+                            <img src="@item.Story?.CoverUrl" alt="@item.Story?.Title" style="width: 56px; height: 80px; object-fit: cover; border-radius: var(--radius-sm);" />
+                            <div>
+                                <h3 style="font-size: 1.05rem; fontWeight: 700; color: #fff; margin-bottom: 0.25rem;">
+                                    @item.Story?.Title
+                                </h3>
+                                <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.2rem;">
+                                    Đang đọc: @item.Chapter?.Title
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-dim);">
+                                    Cập nhật: @item.UpdatedAt.ToLocalTime().ToString("g")
+                                </div>
+                            </div>
+                        </a>
+
+                        <div>
+                            <a href="/Reader/Read/@item.ChapterId" class="btn btn-primary btn-sm">
+                                📖 Đọc tiếp
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function showTab(tabId, btn) {
+        document.getElementById('favTab').style.display = tabId === 'favTab' ? 'block' : 'none';
+        document.getElementById('histTab').style.display = tabId === 'histTab' ? 'block' : 'none';
+        btn.parentElement.querySelectorAll('button').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-secondary');
+        });
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-primary');
+    }
+</script>
