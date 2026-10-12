@@ -1,0 +1,28 @@
+services:
+  # 1. Backend REST API & Swagger Service
+  - type: web
+    name: webdoctruyen-backend
+    runtime: docker
+    dockerfilePath: Dockerfile.backend
+    plan: free
+    region: singapore
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:5000
+
+  # 2. Frontend MVC Web Application
+  - type: web
+    name: webdoctruyen-frontend
+    runtime: docker
+    dockerfilePath: Dockerfile.frontend
+    plan: free
+    region: singapore
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:5001
+      - key: BackendApi__BaseUrl
+        value: https://webdoctruyen-backend.onrender.com
