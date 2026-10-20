@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Frontend/**/*.cs" />
+    <Content Remove="Frontend/**" />
+    <EmbeddedResource Remove="Frontend/**" />
+    <None Remove="Frontend/**" />
+    <Compile Remove="Backend/**/*.cs" />
+    <Content Remove="Backend/**" />
+    <EmbeddedResource Remove="Backend/**" />
+    <None Remove="Backend/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.31" />

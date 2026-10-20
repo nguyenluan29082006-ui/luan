@@ -1,62 +1,112 @@
 @model List<Story>
 @{
-    ViewData["Title"] = "Khám Phá Thể Loại";
-    var allGenres = ViewBag.AllGenres as List<Genre> ?? new List<Genre>();
-    string currentGenre = ViewBag.CurrentGenre as string ?? "";
-    string currentType = ViewBag.CurrentType as string ?? "";
+    ViewData["Title"] = "Khám Phá Truyện – MêTruyệnPlus";
+    var allGenres     = ViewBag.AllGenres as List<Genre> ?? new List<Genre>();
+    string currentGenre  = ViewBag.CurrentGenre  as string ?? "";
+    string currentType   = ViewBag.CurrentType   as string ?? "";
     string currentStatus = ViewBag.CurrentStatus as string ?? "";
     string currentSearch = ViewBag.CurrentSearch as string ?? "";
+    string currentSort   = ViewBag.CurrentSort   as string ?? "";
 }
 
-<div class="container" style="padding: 2rem 1.25rem;">
-    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.75rem; font-weight: 800; color: #fff;">🧭 Khám Phá Truyện Theo Thể Loại</h1>
+<!-- Page header -->
+<div style="background: linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%); border-bottom: 1px solid var(--border-color); padding: 2rem 0; margin-bottom: 0;">
+    <div class="container">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;">
+                    🧭 Khám Phá Truyện
+                </h1>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">
+                    @if (!string.IsNullOrEmpty(currentSearch))
+                    {
+                        <span>Kết quả tìm kiếm cho "<strong style="color:#fff;">@currentSearch</strong>"</span>
+                    }
+                    else if (!string.IsNullOrEmpty(currentGenre))
+                    {
+                        var foundGenre = allGenres.FirstOrDefault(g => g.Slug == currentGenre);
+                        <span>Thể loại: <strong style="color:#fff;">@(foundGenre?.Name ?? currentGenre)</strong></span>
+                    }
+                    else
+                    {
+                        <span>Khám phá tất cả truyện hay nhất</span>
+                    }
+                </p>
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-muted);">
+                Tìm thấy <strong style="color: var(--primary-light);">@Model.Count</strong> bộ truyện
+            </div>
+        </div>
     </div>
+</div>
 
-    <!-- Genres Buttons List -->
-    <div style="display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 2rem; padding: 1.25rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-        <a href="/Home/Genres" class="btn btn-sm @(string.IsNullOrEmpty(currentGenre) ? "btn-primary" : "btn-secondary")">
-            Tất cả thể loại
+<div class="container" style="padding: 2rem 1.5rem;">
+    <!-- Genre pills scroll -->
+    <div class="genre-scroll" style="margin-bottom: 1.75rem;">
+        <a href="/Home/Genres" class="genre-pill @(string.IsNullOrEmpty(currentGenre) ? "active" : "")">
+            🌐 Tất cả
         </a>
         @foreach (var g in allGenres)
         {
-            <a href="/Home/Genres?genre=@g.Slug&type=@currentType&status=@currentStatus" class="btn btn-sm @(currentGenre == g.Slug ? "btn-primary" : "btn-secondary")">
-                <span>@(g.Icon ?? "📖")</span>
-                <span>@g.Name</span>
+            <a href="/Home/Genres?genre=@g.Slug&type=@currentType&status=@currentStatus&sort=@currentSort"
+               class="genre-pill @(currentGenre == g.Slug ? "active" : "")">
+                @(g.Icon ?? "📖") @g.Name
             </a>
         }
     </div>
 
-    <!-- Filter form toolbar -->
-    <form method="get" action="/Home/Genres" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.75rem;">
+    <!-- Filter toolbar -->
+    <form method="get" action="/Home/Genres"
+          style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 2rem; padding: 1.1rem 1.25rem; background: var(--bg-glass); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
         <input type="hidden" name="genre" value="@currentGenre" />
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-            <select name="type" class="form-control" style="width: auto; padding: 0.5rem 1rem;" onchange="this.form.submit()">
-                <option value="">Tất cả hình thức</option>
-                <option value="novel" selected="@(currentType == "novel")">Truyện Chữ</option>
-                <option value="comic" selected="@(currentType == "comic")">Truyện Tranh</option>
-            </select>
 
-            <select name="status" class="form-control" style="width: auto; padding: 0.5rem 1rem;" onchange="this.form.submit()">
-                <option value="">Tất cả tình trạng</option>
-                <option value="ongoing" selected="@(currentStatus == "ongoing")">Đang ra</option>
-                <option value="completed" selected="@(currentStatus == "completed")">Đã hoàn thành</option>
-            </select>
+        <!-- Search -->
+        <div class="input-group" style="flex: 1; min-width: 200px; max-width: 300px;">
+            <span class="input-icon">🔍</span>
+            <input type="text" name="search" value="@currentSearch" class="form-control"
+                   placeholder="Tên truyện, tác giả..." style="padding-left: 2.5rem;" />
         </div>
 
-        <div style="font-size: 0.9rem; color: var(--text-muted);">
-            Tìm thấy <strong>@Model.Count</strong> bộ truyện phù hợp
-        </div>
+        <!-- Type filter -->
+        <select name="type" class="form-control" style="width: auto; padding: 0.65rem 1rem;" onchange="this.form.submit()">
+            <option value="">📚 Tất cả hình thức</option>
+            @if (currentType == "novel") { <option value="novel" selected>📝 Truyện Chữ</option> } else { <option value="novel">📝 Truyện Chữ</option> }
+            @if (currentType == "comic") { <option value="comic" selected>🎨 Truyện Tranh</option> } else { <option value="comic">🎨 Truyện Tranh</option> }
+        </select>
+
+        <!-- Status filter -->
+        <select name="status" class="form-control" style="width: auto; padding: 0.65rem 1rem;" onchange="this.form.submit()">
+            <option value="">🔄 Tất cả tình trạng</option>
+            @if (currentStatus == "ongoing") { <option value="ongoing" selected>🔄 Đang ra</option> } else { <option value="ongoing">🔄 Đang ra</option> }
+            @if (currentStatus == "completed") { <option value="completed" selected>✅ Đã hoàn thành</option> } else { <option value="completed">✅ Đã hoàn thành</option> }
+        </select>
+
+        <!-- Sort -->
+        <select name="sort" class="form-control" style="width: auto; padding: 0.65rem 1rem;" onchange="this.form.submit()">
+            <option value="">📊 Sắp xếp</option>
+            @if (currentSort == "views") { <option value="views" selected>👁️ Xem nhiều nhất</option> } else { <option value="views">👁️ Xem nhiều nhất</option> }
+            @if (currentSort == "latest") { <option value="latest" selected>⏰ Mới nhất</option> } else { <option value="latest">⏰ Mới nhất</option> }
+            @if (currentSort == "chapter") { <option value="chapter" selected>📖 Nhiều chương nhất</option> } else { <option value="chapter">📖 Nhiều chương nhất</option> }
+        </select>
+
+        <button type="submit" class="btn btn-primary btn-sm">Lọc</button>
+
+        @if (!string.IsNullOrEmpty(currentGenre) || !string.IsNullOrEmpty(currentType) || !string.IsNullOrEmpty(currentStatus) || !string.IsNullOrEmpty(currentSearch))
+        {
+            <a href="/Home/Genres" class="btn btn-ghost btn-sm">✕ Xóa bộ lọc</a>
+        }
     </form>
 
-    <!-- Stories Grid -->
+    <!-- Stories grid -->
     @if (Model.Count == 0)
     {
-        <div style="text-align: center; padding: 4rem 1rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-            <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1rem;">
-                Không tìm thấy bộ truyện nào phù hợp với bộ lọc đã chọn.
+        <div style="text-align: center; padding: 5rem 1rem; background: var(--bg-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-color);">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🔍</div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Không tìm thấy truyện phù hợp</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm khác nhé.
             </p>
-            <a href="/Home/Genres" class="btn btn-secondary">Đặt lại bộ lọc</a>
+            <a href="/Home/Genres" class="btn btn-primary btn-pill">Xóa bộ lọc →</a>
         </div>
     }
     else
@@ -64,28 +114,26 @@
         <div class="story-grid">
             @foreach (var s in Model)
             {
-                <a href="/Story/Detail/@s.Id" class="story-card">
+                <a href="/Story/Detail/@s.Id" class="story-card fade-up">
                     <div class="story-cover-wrap">
                         <img src="@s.CoverUrl" alt="@s.Title" class="story-cover" loading="lazy" />
                         <div class="story-overlay-tag">
                             <span class="badge @(s.Type == "comic" ? "badge-purple" : "badge-primary")">
-                                @(s.Type == "comic" ? "Truyện Tranh" : "Truyện Chữ")
+                                @(s.Type == "comic" ? "Tranh" : "Chữ")
                             </span>
                         </div>
-                        <div class="story-overlay-views">
-                            👁️ @s.Views.ToString("N0")
-                        </div>
+                        <div class="story-overlay-views">👁️ @s.Views.ToString("N0")</div>
                     </div>
                     <div class="story-info">
                         <h3 class="story-title">@s.Title</h3>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
                             ✍️ @s.AuthorName
                         </div>
                         <div class="story-meta">
-                            <span style="color: @(s.Status == "completed" ? "#34d399" : "#818cf8"); font-weight: 600;">
+                            <span style="color: @(s.Status == "completed" ? "#34d399" : "#818cf8"); font-weight: 600; font-size: 0.72rem;">
                                 @(s.Status == "completed" ? "Hoàn thành" : "Đang ra")
                             </span>
-                            <span>@(s.Chapters?.Count ?? 0) chương</span>
+                            <span>@(s.Chapters?.Count ?? 0) ch.</span>
                         </div>
                     </div>
                 </a>

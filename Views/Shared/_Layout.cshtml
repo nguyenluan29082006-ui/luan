@@ -4,114 +4,375 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b14" />
     <title>@ViewData["Title"] - MêTruyệnPlus</title>
+    @if (ViewData["Description"] != null)
+    {
+        <meta name="description" content="@ViewData["Description"]" />
+    }
+    else
+    {
+        <meta name="description" content="MêTruyệnPlus – Nền tảng đọc và sáng tác truyện trực tuyến hàng đầu Việt Nam. Hàng nghìn truyện chữ, truyện tranh cập nhật mỗi ngày." />
+    }
+    <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/site.css" />
+    <!-- Icons (Lucide via CDN) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Reading progress bar (hidden by default, shown on reading pages) -->
+    <div class="reading-progress" id="readingProgress"></div>
+
     <div class="app-container">
-        <!-- Header / Navbar -->
-        <header class="navbar">
+        <!-- ════════════════════ NAVBAR ════════════════════ -->
+        <header class="navbar" id="mainNavbar">
             <div class="container navbar-container">
-                <!-- Brand Logo -->
+
+                <!-- Brand -->
                 <a href="/" class="nav-brand">
-                    <div style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #ec4899); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(99, 102, 241, 0.4); color: #fff; font-size: 1.2rem;">
-                        📖
-                    </div>
+                    <div class="nav-brand-icon">📖</div>
                     <span>MêTruyện<span style="color: #ec4899;">Plus</span></span>
                 </a>
 
-                <!-- Search Bar -->
-                <form action="/Home/Genres" method="get" class="nav-search">
+                <!-- Search (desktop) -->
+                <form action="/Home/Genres" method="get" class="nav-search" role="search">
                     <span class="nav-search-icon">🔍</span>
-                    <input type="text" name="search" placeholder="Tìm truyện, tác giả..." value="@Context.Request.Query["search"]" />
+                    <input type="text" name="search" placeholder="Tìm truyện, tác giả..." 
+                           value="@Context.Request.Query["search"]" 
+                           autocomplete="off"
+                           aria-label="Tìm kiếm truyện" />
                 </form>
 
-                <!-- Navigation Links -->
-                <nav class="nav-links">
-                    <a href="/" class="nav-item">Trang chủ</a>
-                    <a href="/Home/Genres" class="nav-item">Thể loại</a>
-                    <a href="/Home/Favorites" class="nav-item">🔖 Tủ truyện</a>
+                <!-- Nav links (desktop) -->
+                <nav class="nav-links" aria-label="Main navigation">
+                    <a href="/" class="nav-item @(Context.Request.Path == "/" ? "active" : "")">
+                        🏠 Trang chủ
+                    </a>
+                    <a href="/Home/Genres" class="nav-item @(Context.Request.Path.StartsWithSegments("/Home/Genres") ? "active" : "")">
+                        📚 Thể loại
+                    </a>
+                    <a href="/Home/Favorites" class="nav-item @(Context.Request.Path.StartsWithSegments("/Home/Favorites") ? "active" : "")">
+                        🔖 Tủ truyện
+                    </a>
 
                     @if (User.IsInRole("author") || User.IsInRole("admin"))
                     {
-                        <a href="/Author" class="nav-item" style="color: #a78bfa;">✍️ Tác giả Studio</a>
+                        <a href="/Author" class="nav-item" style="color: #a78bfa;">
+                            ✍️ Studio
+                        </a>
                     }
 
                     @if (User.IsInRole("admin"))
                     {
-                        <a href="/Admin" class="nav-item" style="color: #38bdf8;">🛡️ Quản trị (Admin)</a>
+                        <a href="/Admin" class="nav-item" style="color: #38bdf8;">
+                            🛡️ Admin
+                        </a>
                     }
                 </nav>
 
-                <!-- Auth / User Area -->
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-
+                <!-- User area -->
+                <div class="nav-user-area">
+                    @{
+                        var roleName = User.IsInRole("admin") ? "Admin" : User.IsInRole("author") ? "Tác giả" : "Độc giả";
+                        var roleBadge = User.IsInRole("admin") ? "badge-danger" : User.IsInRole("author") ? "badge-purple" : "badge-cyan";
+                        var initials = (User.Identity?.Name?.Length > 0) ? User.Identity.Name.Substring(0, 1).ToUpper() : "U";
+                    }
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
-                        <div style="display: flex; align-items: center; gap: 0.6rem; background: rgba(255, 255, 255, 0.06); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); border: 1px solid var(--border-color);">
-                            <span style="font-size: 0.875rem; font-weight: 600; color: #fff;">@User.Identity.Name</span>
-                            <span class="badge @(User.IsInRole("admin") ? "badge-danger" : User.IsInRole("author") ? "badge-purple" : "badge-primary")" style="font-size: 0.65rem;">
-                                @(User.IsInRole("admin") ? "Admin" : User.IsInRole("author") ? "Tác giả" : "Độc giả")
-                            </span>
-                            <a href="/Account/Logout" class="btn btn-sm btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; color: #f87171;" title="Đăng xuất">
-                                Thoát
-                            </a>
+                        <div class="user-chip" title="@User.Identity.Name">
+                            <div class="user-avatar">@initials</div>
+                            <span style="font-size: 0.875rem; font-weight: 600; color: #fff; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@User.Identity.Name</span>
+                            <span class="badge @roleBadge" style="font-size: 0.62rem;">@roleName</span>
                         </div>
+                        <a href="/Account/Logout" class="btn btn-sm btn-outline" style="color: #f87171 !important; border-color: rgba(239,68,68,0.3);" title="Đăng xuất">
+                            Thoát
+                        </a>
                     }
                     else
                     {
-                        <a href="/Account/Login" class="btn btn-primary btn-sm">
+                        <a href="/Account/Login" class="btn btn-primary btn-sm btn-pill">
                             👤 Đăng nhập
                         </a>
                     }
+
+                    <!-- Hamburger -->
+                    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
                 </div>
+            </div>
+
+            <!-- Mobile search (below navbar on small screens) -->
+            <div class="mobile-search-bar" id="mobileSearchBar" style="display:none; padding: 0.65rem 1rem; border-top: 1px solid var(--border-color);">
+                <form action="/Home/Genres" method="get" class="nav-search" style="max-width: 100%;">
+                    <span class="nav-search-icon">🔍</span>
+                    <input type="text" name="search" placeholder="Tìm truyện..." />
+                </form>
             </div>
         </header>
 
-        <!-- Main Content Body -->
-        <main class="main-content">
-            @if (TempData["SuccessMessage"] != null)
+        <!-- Mobile Drawer -->
+        <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
+            <a href="/" class="nav-item" style="font-size: 1rem; padding: 0.75rem 1rem;">🏠 Trang chủ</a>
+            <a href="/Home/Genres" class="nav-item" style="font-size: 1rem; padding: 0.75rem 1rem;">📚 Thể loại</a>
+            <a href="/Home/Favorites" class="nav-item" style="font-size: 1rem; padding: 0.75rem 1rem;">🔖 Tủ truyện</a>
+            @if (User.IsInRole("author") || User.IsInRole("admin"))
             {
-                <div class="container" style="margin-top: 1.5rem;">
-                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-                </div>
+                <a href="/Author" class="nav-item" style="font-size: 1rem; padding: 0.75rem 1rem; color: #a78bfa;">✍️ Author Studio</a>
             }
-            @if (TempData["ErrorMessage"] != null)
+            @if (User.IsInRole("admin"))
             {
-                <div class="container" style="margin-top: 1.5rem;">
-                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-                </div>
+                <a href="/Admin" class="nav-item" style="font-size: 1rem; padding: 0.75rem 1rem; color: #38bdf8;">🛡️ Quản trị Admin</a>
             }
-            @if (TempData["InfoMessage"] != null)
+            <div class="divider">
+                <span>Tài khoản</span>
+            </div>
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                <div class="container" style="margin-top: 1.5rem;">
-                    <div class="alert alert-info">@TempData["InfoMessage"]</div>
-                </div>
+                <a href="/Account/Logout" class="btn btn-outline w-full" style="color: #f87171 !important;">Đăng xuất</a>
             }
+            else
+            {
+                <a href="/Account/Login" class="btn btn-primary w-full">👤 Đăng nhập</a>
+            }
+        </nav>
 
+        <!-- ════════════════════ FLASH MESSAGES ════════════════════ -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="container" style="margin-top: 1.25rem;">
+                <div class="alert alert-success">✅ @TempData["SuccessMessage"]</div>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="container" style="margin-top: 1.25rem;">
+                <div class="alert alert-danger">❌ @TempData["ErrorMessage"]</div>
+            </div>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="container" style="margin-top: 1.25rem;">
+                <div class="alert alert-info">ℹ️ @TempData["InfoMessage"]</div>
+            </div>
+        }
+
+        <!-- ════════════════════ MAIN BODY ════════════════════ -->
+        <main class="main-content" id="mainContent">
             @RenderBody()
         </main>
 
-        <!-- Footer -->
-        <footer style="background: rgba(11, 15, 25, 0.95); border-top: 1px solid var(--border-color); padding: 2.5rem 0 1.5rem 0; margin-top: auto;">
+        <!-- ════════════════════ FOOTER ════════════════════ -->
+        <footer class="footer">
             <div class="container">
-                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.6rem;">
-                        <span style="font-size: 1.2rem; font-weight: 800; color: #fff;">MêTruyện<span style="color: #ec4899;">Plus</span></span>
+                <div class="footer-grid">
+                    <!-- Brand column -->
+                    <div>
+                        <div class="nav-brand" style="margin-bottom: 1rem;">
+                            <div class="nav-brand-icon" style="animation: none; box-shadow: 0 0 16px var(--primary-glow);">📖</div>
+                            <span>MêTruyện<span style="color: #ec4899;">Plus</span></span>
+                        </div>
+                        <p class="footer-brand-desc">
+                            Nền tảng đọc và sáng tác truyện trực tuyến hàng đầu Việt Nam. Hàng nghìn truyện chữ và truyện tranh được cập nhật mỗi ngày.
+                        </p>
+                        <div style="display: flex; gap: 0.6rem; margin-top: 1rem;">
+                            <a href="#" class="btn btn-icon btn-outline" title="Facebook" style="font-size: 1rem;">📘</a>
+                            <a href="#" class="btn btn-icon btn-outline" title="Discord" style="font-size: 1rem;">💬</a>
+                            <a href="#" class="btn btn-icon btn-outline" title="Twitter" style="font-size: 1rem;">🐦</a>
+                        </div>
                     </div>
-                    <div style="font-size: 0.85rem; color: var(--text-muted);">
-                        Cộng đồng đọc và sáng tác truyện trực tuyến
+
+                    <!-- Links columns -->
+                    <div>
+                        <p class="footer-heading">Khám phá</p>
+                        <div class="footer-links">
+                            <a href="/Home/Genres" class="footer-link">📚 Tất cả thể loại</a>
+                            <a href="/Home/Genres?sort=views" class="footer-link">📈 Xem nhiều nhất</a>
+                            <a href="/Home/Genres?sort=latest" class="footer-link">🆕 Mới cập nhật</a>
+                            <a href="/Home/Genres?type=comic" class="footer-link">🎨 Truyện tranh</a>
+                            <a href="/Home/Genres?type=novel" class="footer-link">📝 Truyện chữ</a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="footer-heading">Tác giả</p>
+                        <div class="footer-links">
+                            <a href="/Author" class="footer-link">✍️ Author Studio</a>
+                            <a href="/Account/Login" class="footer-link">🚀 Bắt đầu sáng tác</a>
+                            <a href="#" class="footer-link">📖 Hướng dẫn</a>
+                            <a href="#" class="footer-link">💡 Chính sách</a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="footer-heading">Hỗ trợ</p>
+                        <div class="footer-links">
+                            <a href="#" class="footer-link">❓ FAQ</a>
+                            <a href="#" class="footer-link">📬 Liên hệ</a>
+                            <a href="#" class="footer-link">🔒 Bảo mật</a>
+                            <a href="#" class="footer-link">📋 Điều khoản</a>
+                        </div>
                     </div>
                 </div>
-                <div style="text-align: center; font-size: 0.8rem; color: var(--text-dim);">
-                    © 2026 MêTruyệnPlus. Nền tảng quản lý và đọc truyện trực tuyến đa vai trò.
+
+                <div class="footer-bottom">
+                    © 2026 MêTruyệnPlus · Nền tảng quản lý và đọc truyện trực tuyến đa vai trò · Made with ❤️ in Vietnam
                 </div>
             </div>
         </footer>
-    </div>
+    </div><!-- /app-container -->
 
+    <!-- ════════════════════ SCRIPTS ════════════════════ -->
+    <script>
+    // ── Navbar scroll effect ──
+    const navbar = document.getElementById('mainNavbar');
+    window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+    }, { passive: true });
+
+    // ── Mobile nav toggle ──
+    const navToggle = document.getElementById('navToggle');
+    const mobileNav = document.getElementById('mobileNav');
+    const mobileSearch = document.getElementById('mobileSearchBar');
+
+    navToggle.addEventListener('click', () => {
+        const isOpen = mobileNav.classList.toggle('open');
+        navToggle.classList.toggle('open', isOpen);
+        navToggle.setAttribute('aria-expanded', isOpen.toString());
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+        // show search on mobile when menu opens
+        if (mobileSearch && window.innerWidth <= 480) {
+            mobileSearch.style.display = isOpen ? 'block' : 'none';
+        }
+    });
+
+    // Close mobile nav on link click
+    mobileNav.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+            mobileNav.classList.remove('open');
+            navToggle.classList.remove('open');
+            navToggle.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+        });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!navbar.contains(e.target) && !mobileNav.contains(e.target)) {
+            mobileNav.classList.remove('open');
+            navToggle.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // ── Reading progress bar ──
+    const progress = document.getElementById('readingProgress');
+    if (document.body.dataset.page === 'reading') {
+        progress.style.display = 'block';
+        window.addEventListener('scroll', () => {
+            const scrolled = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+            progress.style.width = Math.min(scrolled, 100) + '%';
+        }, { passive: true });
+    }
+
+    // ── Toast system ──
+    window.showToast = function(title, message, type = 'info', duration = 4000) {
+        const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <span class="toast-icon">${icons[type] || icons.info}</span>
+            <div class="toast-body">
+                ${title ? `<div class="toast-title">${title}</div>` : ''}
+                <div>${message}</div>
+            </div>
+            <button class="toast-close" onclick="closeToast(this.parentElement)">✕</button>
+        `;
+        container.appendChild(toast);
+        const timer = setTimeout(() => closeToast(toast), duration);
+        toast._timer = timer;
+    };
+
+    window.closeToast = function(toast) {
+        clearTimeout(toast._timer);
+        toast.classList.add('hiding');
+        toast.addEventListener('animationend', () => toast.remove());
+    };
+
+    // ── Number counter animation ──
+    function animateCounter(el) {
+        const target = parseInt(el.dataset.target || el.textContent.replace(/\D/g, ''), 10);
+        if (!target) return;
+        let current = 0;
+        const step = target / 60;
+        const timer = setInterval(() => {
+            current += step;
+            if (current >= target) { current = target; clearInterval(timer); }
+            el.textContent = Math.round(current).toLocaleString('vi-VN');
+        }, 16);
+    }
+
+    // ── Intersection Observer for fade-up & counters ──
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+                if (entry.target.classList.contains('stat-number')) {
+                    animateCounter(entry.target);
+                }
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.fade-up, .stat-number').forEach(el => {
+        el.style.animationPlayState = 'paused';
+        io.observe(el);
+    });
+
+    // ── Star rating interactive ──
+    document.querySelectorAll('.star-rating:not(.readonly)').forEach(rating => {
+        const stars = rating.querySelectorAll('.star');
+        stars.forEach((star, idx) => {
+            star.addEventListener('mouseover', () => {
+                stars.forEach((s, i) => s.classList.toggle('filled', i <= idx));
+            });
+            star.addEventListener('mouseout', () => {
+                const val = parseInt(rating.dataset.value || 0);
+                stars.forEach((s, i) => s.classList.toggle('filled', i < val));
+            });
+            star.addEventListener('click', () => {
+                rating.dataset.value = idx + 1;
+                const input = rating.nextElementSibling;
+                if (input && input.type === 'hidden') input.value = idx + 1;
+                stars.forEach((s, i) => s.classList.toggle('filled', i <= idx));
+            });
+        });
+    });
+
+    // ── Auto-dismiss alerts ──
+    document.querySelectorAll('.alert').forEach(alert => {
+        setTimeout(() => {
+            alert.style.transition = 'opacity 0.5s, transform 0.5s';
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-8px)';
+            setTimeout(() => alert.remove(), 500);
+        }, 5000);
+    });
+
+    // ── Init Lucide icons if loaded ──
+    if (window.lucide) lucide.createIcons();
+    </script>
+
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
